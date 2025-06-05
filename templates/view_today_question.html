@@ -49,7 +49,7 @@
                                         <i class="fas fa-forward"></i> Soruyu Atla
                                     </button>
                                     {% if question.RepeatCount < 3 %}
-                                    <button onclick="markCompleted({{ question.QuestionId }})" class="btn btn-success" id="completeBtn">
+                                    <button type="button" onclick="markCompleted({{ question.QuestionId }}); window.location.href='{{ url_for('index') }}';" class="btn btn-success" id="completeBtn">
                                         <i class="fas fa-check"></i> Tamamlandı
                                     </button>
                                     {% endif %}
