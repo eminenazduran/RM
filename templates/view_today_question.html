@@ -48,9 +48,11 @@
                                     <button onclick="skipQuestion({{ question.QuestionId }})" class="btn btn-warning">
                                         <i class="fas fa-forward"></i> Soruyu Atla
                                     </button>
-                                    <button onclick="markCompleted({{ question.QuestionId }})" class="btn btn-success">
+                                    {% if question.RepeatCount < 3 %}
+                                    <button onclick="markCompleted({{ question.QuestionId }})" class="btn btn-success" id="completeBtn">
                                         <i class="fas fa-check"></i> Tamamlandı
                                     </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -122,12 +124,10 @@ function markCompleted(questionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Tekrar sayısını güncelle ve doğru tarihi vurgula
             updateRepeatDisplay(data.repeat_count, data.next_repeat_date, data.updated_repeat_dates);
-            // Tamamlandıysa butonu devre dışı bırak
-            if (data.is_completed) {
-                document.querySelector('button[onclick="markCompleted({{ question.QuestionId }})"]').disabled = true;
-            }
+            var btn = document.getElementById('completeBtn');
+            if (btn) btn.style.display = 'none';
+            window.location.href = "{{ url_for('index') }}";
         } else {
             alert('Tekrar sayısı güncellenirken bir hata oluştu: ' + data.error);
         }

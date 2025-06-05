@@ -250,9 +250,8 @@
     }
     
     .btn-login:hover {
-        background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(106, 55, 181, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(106, 55, 181, 0.4);
     }
     
     .login-footer {
@@ -336,6 +335,39 @@
     }
     
     .back-to-home a:hover {
+        text-decoration: underline;
+    }
+    
+    .forgot-password-link {
+        color: var(--gray-text);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+    
+    .forgot-password-link:hover {
+        color: var(--primary-lighter);
+        text-decoration: underline;
+    }
+    
+    .register-link {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    
+    .register-link p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .register-link a {
+        color: var(--primary-lighter);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .register-link a:hover {
         text-decoration: underline;
     }
     
@@ -483,9 +515,10 @@
                 
                 <button type="submit" class="btn-login">Giriş Yap</button>
             </form>
-            
-            <div class="login-footer">
-                <p><a href="{{ url_for('forgot_password') }}">Şifremi Unuttum</a></p>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('forgot_password') }}" class="forgot-password-link">Şifremi Unuttum</a>
+            </div>
+            <div class="register-link">
                 <p>Hesabınız yok mu? <a href="{{ url_for('register') }}">Kayıt Olun</a></p>
             </div>
             

@@ -379,7 +379,6 @@ def mark_notification_read(notification_id):
 @login_required
 def today_questions():
     today = datetime.now().date()
-    # Sadece tekrar tarihi bugün olan ve tamamlanmamış sorular
     questions = Question.query.filter(
         Question.UserId == current_user.UserId,
         Question.IsCompleted == False,
@@ -1880,6 +1879,38 @@ def complete_task(task_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/update_repeat_count/<int:question_id>', methods=['POST'])
+@login_required
+def update_repeat_count(question_id):
+    question = Question.query.get_or_404(question_id)
+    if question.UserId != current_user.UserId:
+        return jsonify({'success': False, 'error': 'Bu işlem için yetkiniz yok'}), 403
+
+    updated_dates = {
+        'repeat1': question.Repeat1Date.strftime('%d.%m.%Y') if question.Repeat1Date else 'Belirlenmedi',
+        'repeat2': question.Repeat2Date.strftime('%d.%m.%Y') if question.Repeat2Date else 'Belirlenmedi',
+        'repeat3': question.Repeat3Date.strftime('%d.%m.%Y') if question.Repeat3Date else 'Belirlenmedi',
+    }
+
+    if question.RepeatCount == 0:
+        question.RepeatCount = 1
+    elif question.RepeatCount == 1:
+        question.RepeatCount = 2
+    elif question.RepeatCount == 2:
+        question.RepeatCount = 3
+        question.IsCompleted = True
+    else:
+        return jsonify({'success': False, 'error': 'Zaten tamamlandı.'})
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'repeat_count': question.RepeatCount,
+        'is_completed': question.IsCompleted,
+        'updated_repeat_dates': updated_dates
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -9,8 +9,8 @@ class Config:
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_USERNAME = 'inforeviseme@gmail.com'
+    MAIL_PASSWORD = 'wjkn wyfm dmih rtsl'
     
     # Password reset settings
     PASSWORD_RESET_EXPIRATION = timedelta(hours=1)
