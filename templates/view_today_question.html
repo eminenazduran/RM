@@ -45,7 +45,7 @@
                                     <button onclick="deleteQuestion({{ question.QuestionId }})" class="btn btn-outline-danger">
                                         <i class="fas fa-trash"></i> Sil
                                     </button>
-                                    <button onclick="skipQuestion({{ question.QuestionId }})" class="btn btn-warning">
+                                    <button onclick="skipQuestion({{ question.QuestionId }}, '{{ request.args.get('source', 'today') }}', '{{ question.CategoryId }}')" class="btn btn-warning">
                                         <i class="fas fa-forward"></i> Soruyu Atla
                                     </button>
                                     {% if question.RepeatCount < 3 %}
@@ -197,13 +197,16 @@ function deleteQuestion(questionId) {
     }
 }
 
-function skipQuestion(currentId) {
-    fetch(`/next_question/${currentId}`)
+function skipQuestion(currentId, source, categoryId) {
+    let url = `/next_question/${currentId}?source=${source}`;
+    if (categoryId) {
+        url += `&category_id=${categoryId}`;
+    }
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.next_id) {
-                // Bugünkü sorulardan gelindiği için view_today_question rotasına yönlendir
-                window.location.href = `/view_today_question/${data.next_id}`;
+                window.location.href = `/view_question/${data.next_id}`;
             } else {
                 alert('Atlanacak başka soru yok!');
             }

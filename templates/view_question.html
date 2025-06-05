@@ -9,7 +9,7 @@
         <main class="col-12 px-md-4">
             <!-- Üst Menü -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Bugünün Sorusu</h1>
+                <h1 class="h2">Soru Detayı</h1>
                 <div>
                     <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Geri
@@ -45,7 +45,7 @@
                                     <button onclick="deleteQuestion({{ question.QuestionId }})" class="btn btn-outline-danger">
                                         <i class="fas fa-trash"></i> Sil
                                     </button>
-                                    <button onclick="skipQuestion({{ question.QuestionId }})" class="btn btn-warning">
+                                    <button onclick="{% if question.category %}skipQuestion({{ question.QuestionId }}, 'category', {{ question.CategoryId }}){% else %}skipQuestion({{ question.QuestionId }}){% endif %}" class="btn btn-warning">
                                         <i class="fas fa-forward"></i> Soruyu Atla
                                     </button>
                                 </div>
@@ -154,8 +154,12 @@ function deleteQuestion(questionId) {
     }
 }
 
-function skipQuestion(currentId) {
-    fetch(`/next_question/${currentId}`)
+function skipQuestion(currentId, source, categoryId) {
+    let url = `/next_question/${currentId}`;
+    if (source && categoryId) {
+        url += `?source=${source}&category_id=${categoryId}`;
+    }
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.next_id) {

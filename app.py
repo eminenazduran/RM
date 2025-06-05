@@ -1912,5 +1912,124 @@ def update_repeat_count(question_id):
         'updated_repeat_dates': updated_dates
     })
 
+@app.context_processor
+def inject_notifications():
+    if current_user.is_authenticated:
+        today = datetime.now().date()
+        yesterday = datetime.now() - timedelta(days=1)
+        notifications = []
+
+        # Bugünün soruları bildirimi
+        today_questions_count = Question.query.filter(
+            Question.UserId == current_user.UserId,
+            Question.IsCompleted == False,
+            Question.IsHidden == False,
+            (
+                (Question.Repeat1Date != None) & (db.func.cast(Question.Repeat1Date, db.Date) == today)
+                |
+                (Question.Repeat2Date != None) & (db.func.cast(Question.Repeat2Date, db.Date) == today)
+                |
+                (Question.Repeat3Date != None) & (db.func.cast(Question.Repeat3Date, db.Date) == today)
+            )
+        ).count()
+        if today_questions_count > 0:
+            notifications.append({
+                'icon': 'fas fa-clock',
+                'color_class': 'blue',
+                'type': 'Bugünün Soruları',
+                'msg': f'{today_questions_count} soru çözülmeyi bekliyor',
+                'timestamp': None,
+            })
+
+        # Son 24 saatte tamamlanan görev bildirimi
+        completed_tasks_last_24h = Task.query.filter(
+            Task.UserId == current_user.UserId,
+            Task.Status == 'completed',
+            Task.CompletedAt >= yesterday
+        ).count()
+        if completed_tasks_last_24h > 0:
+            notifications.append({
+                'icon': 'fas fa-check-circle',
+                'color_class': 'green',
+                'type': 'Görev Tamamlandı',
+                'msg': f'Son 24 saatte tamamlanan {completed_tasks_last_24h} görev',
+                'timestamp': None,
+            })
+
+        # Okunan kitap bildirimi
+        books_count = Book.query.filter_by(
+            UserId=current_user.UserId
+        ).count()
+        if books_count > 0:
+            notifications.append({
+                'icon': 'fas fa-book',
+                'color_class': 'purple',
+                'type': 'Kitap',
+                'msg': f'{books_count} kitap okuyorsun!',
+                'timestamp': None,
+            })
+
+        # Motivasyon mesajı
+        motivation_messages = [
+            "Başarı, küçük adımların toplamıdır!",
+            "Her gün bir adım daha ileriye!",
+            "Zorlandığında vazgeçme, mola ver ve devam et!",
+            "Küçük adımlar büyük başarılar getirir!",
+            "Bugün dünden daha iyi ol!",
+            "Başarı yolunda ilerliyorsun!",
+            "Kendine inan, başarabilirsin!",
+            "Her tekrar seni hedefe yaklaştırır!"
+        ]
+        import random
+        motivation_message = random.choice(motivation_messages)
+        notifications.append({
+            'icon': 'fas fa-lightbulb',
+            'color_class': 'yellow',
+            'type': 'Motivasyon',
+            'msg': motivation_message,
+            'timestamp': None,
+        })
+
+        notification_count = len(notifications)
+        daily_summary = None
+        return dict(notifications=notifications, notification_count=notification_count, daily_summary=daily_summary)
+    return dict(notifications=[], notification_count=0, daily_summary=None)
+
+@app.route('/next_question/<int:current_id>')
+@login_required
+def next_question(current_id):
+    source = request.args.get('source', 'today')
+    category_id = request.args.get('category_id', type=int)
+    user_id = current_user.UserId
+
+    # Varsayılan: tüm sorular
+    query = Question.query.filter_by(UserId=user_id, IsHidden=False).order_by(Question.QuestionId)
+
+    if source == 'today':
+        today = datetime.now().date()
+        query = query.filter(
+            Question.IsCompleted == False,
+            (
+                (Question.Repeat1Date != None) & (db.func.cast(Question.Repeat1Date, db.Date) == today)
+                |
+                (Question.Repeat2Date != None) & (db.func.cast(Question.Repeat2Date, db.Date) == today)
+                |
+                (Question.Repeat3Date != None) & (db.func.cast(Question.Repeat3Date, db.Date) == today)
+            )
+        )
+    elif source == 'category' and category_id:
+        query = query.filter(Question.CategoryId == category_id)
+    # Diğer kaynaklar için ek filtreler eklenebilir
+
+    questions = query.all()
+    ids = [q.QuestionId for q in questions]
+    if current_id in ids:
+        idx = ids.index(current_id)
+        if len(ids) > 1:
+            next_idx = (idx + 1) % len(ids)
+            if next_idx != idx:
+                return jsonify({'next_id': ids[next_idx]})
+    return jsonify({'next_id': None})
+
 if __name__ == '__main__':
     app.run(debug=True)
